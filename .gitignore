@@ -1,0 +1,6 @@
+dafny
+scripts/*.dll*
+dafny.manifest
+dafny.manifest.sgx
+dafny.sig
+enclave-key.pem
