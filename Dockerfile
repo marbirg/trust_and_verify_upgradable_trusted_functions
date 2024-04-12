@@ -18,5 +18,5 @@ COPY ./key/enclave-key.pem /root/.config/gramine/enclave-key.pem
 RUN make build
 
 # COPY ./scripts /root/scripts
-ENTRYPOINT [ "gramine-sgx", "dafny", "/version" ]
-# ENTRYPOINT [ "gramine-sgx", "dafny", "scripts/Abs.dfy" ]
+# ENTRYPOINT [ "gramine-sgx", "dafny", "/version" ]
+ENTRYPOINT [ "gramine-sgx", "dafny", "scripts/Abs.dfy", "/compile:0"]
