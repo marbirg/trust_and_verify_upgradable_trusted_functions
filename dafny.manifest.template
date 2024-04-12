@@ -18,9 +18,7 @@ loader.env.DOTNET_SYSTEM_GLOBALIZATION_INVARIANT="1"
 # Python's NumPy spawns as many threads as there are CPU cores, and each thread
 # consumes a chunk of memory, so on large machines 1G enclave size may be not enough.
 # We limit the number of spawned threads via OMP_NUM_THREADS env variable.
-loader.env.OMP_NUM_THREADS = "1"
-# loader.env.OMP_NUM_THREADS = "4"
-# loader.env.OMP_NUM_THREADS = "16"
+loader.env.OMP_NUM_THREADS = "4"
 
 loader.insecure__use_cmdline_argv = true
  # loader.insecure_disable_aslr = true
@@ -35,7 +33,6 @@ fs.mounts = [
   { path = "{{ arch_libdir }}", uri = "file:{{ arch_libdir }}" },
   { path = "/usr/{{ arch_libdir }}", uri = "file:/usr/{{ arch_libdir }}" },
   { path = "/usr/lib/dafny", uri = "file:./dafny" },
-  # { path = "/usr/lib/dafny/dafny", uri = "file:./dafny/dafny" },
 
   { type = "tmpfs", path = "/tmp" },
   { type = "encrypted", path = "/data/", uri = "file:./data", key_name = "_sgx_mrsigner" },
@@ -44,16 +41,13 @@ fs.mounts = [
 ]
 
 sys.stack.size = "100M"
-# sys.stack.size = "400M"
-# sys.stack.size = "1G"
+
 sys.enable_extra_runtime_domain_names_conf = true
 
 sgx.debug = false
 sgx.edmm_enable = {{ 'true' if env.get('EDMM', '0') == '1' else 'false' }}
-sgx.enclave_size = "2G"
+sgx.enclave_size = "1G"
 sgx.max_threads = {{ '1' if env.get('EDMM', '0') == '1' else '32' }}
-# sgx.max_threads = 32
-# sgx.max_threads = 12
 
 sgx.remote_attestation = "{{ ra_type }}"
 sgx.ra_client_spid = "{{ ra_client_spid }}"
@@ -61,13 +55,9 @@ sgx.ra_client_linkable = {{ 'true' if ra_client_linkable == '1' else 'false' }}
 
 sgx.trusted_files = [
   "file:{{ gramine.libos }}",
-  # "file:{{ entrypoint }}",
-  # "file:/usr/lib/dafny/",
   "file:./dafny/",
-  # "file:/usr/lib/dafny/dafny",
   "file:{{ gramine.runtimedir() }}/",
   "file:{{ arch_libdir }}/",
   "file:/usr/{{ arch_libdir }}/",
   "file:scripts/",
-  # "file:helper-files/",
 ]
