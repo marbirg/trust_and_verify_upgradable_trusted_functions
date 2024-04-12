@@ -3,6 +3,9 @@
 
 ARCH_LIBDIR ?= /lib/$(shell $(CC) -dumpmachine)
 
+ERROR_LOG:=error.log
+STD_LOG:=stdout.log
+
 ifeq ($(DEBUG),1)
 GRAMINE_LOG_LEVEL = debug
 else
@@ -114,7 +117,11 @@ run-direct:
 	# gramine-direct ./dafny scripts/Abs.dfy /compile:0
 	# gramine-direct ./dafny /usr/lib/dafny/Dafny.exe scripts/Abs.dfy /compile:0
 run-sgx:
-	(2>&3 gramine-sgx ./dafny /version |tee gramine.log) 3>&1 | tee log
+	(2>&3 gramine-sgx ./dafny /version |tee ${STD_LOG}) 3>&1 | tee ${ERROR_LOG}
 	# gramine-sgx ./dafny /version 2>&1| tee gramine.log
 
 	# gramine-sgx ./dafny /compile:0 scripts/Abs.dfy
+
+dafny:
+	wget https://github.com/dafny-lang/dafny/releases/download/v4.6.0/dafny-4.6.0-x64-ubuntu-20.04.zip
+	unzip dafny-4.6.0-x64-ubuntu-20.04.zip
