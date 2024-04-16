@@ -9,30 +9,38 @@ libos.entrypoint = "{{ entrypoint }}"
 loader.log_level = "{{ log_level }}"
 
 loader.env.LD_LIBRARY_PATH = "/lib:/lib:{{ arch_libdir }}:/usr/{{ arch_libdir }}"
-loader.env.MONO_LOG_LEVEL="debug"
+# loader.env.MONO_LOG_LEVEL="debug"
 loader.env.DOTNET_SYSTEM_GLOBALIZATION_INVARIANT="1"
 # loader.env.COMPlus_DefaultStackSize="100000"
 # loader.insecure__use_host_env = true
 # loader.insecure_use_host_env = true
+# loader.env.DOTNET_GCHeapHardLimit = "0xC800000"    # 200 mebibytes (MiB)
+# loader.env.DOTNET_RUNNING_IN_CONTAINER = "true"
 
 # Python's NumPy spawns as many threads as there are CPU cores, and each thread
 # consumes a chunk of memory, so on large machines 1G enclave size may be not enough.
 # We limit the number of spawned threads via OMP_NUM_THREADS env variable.
-loader.env.OMP_NUM_THREADS = "4"
+# loader.env.OMP_NUM_THREADS = "4"
+# loader.env.OMP_NUM_THREADS = "2"
 
 loader.insecure__use_cmdline_argv = true
  # loader.insecure_disable_aslr = true
  # sys.disallow_subprocess = true
- # sgx.file_check_policy = "allow_all_but_log"
+sgx.file_check_policy = "allow_all_but_log"
  # sgx.use_exinfo = true
 
+# Only create one malloc arena.
+# loader.env.MALLOC_ARENA_MAX = "1"
+
  # sys.enable_sigterm_injection = true
+# sgx.enable_stats = true
 
 fs.mounts = [
   { path = "/lib", uri = "file:{{ gramine.runtimedir() }}" },
   { path = "{{ arch_libdir }}", uri = "file:{{ arch_libdir }}" },
   { path = "/usr/{{ arch_libdir }}", uri = "file:/usr/{{ arch_libdir }}" },
   { path = "/usr/lib/dafny", uri = "file:./dafny" },
+  # { path = "/scripts/", uri = "file:./scripts" },
 
   { type = "tmpfs", path = "/tmp" },
   { type = "encrypted", path = "/data/", uri = "file:./data", key_name = "_sgx_mrsigner" },
@@ -40,14 +48,37 @@ fs.mounts = [
   # { type = "encrypted", path = "/data/", uri = "file:./data"},
 ]
 
-sys.stack.size = "100M"
+# sys.stack.size = "1G"
+# sys.stack.size = "1M"
+# sys.stack.size = "8M"
+# sys.stack.size = "16M"
+# sys.stack.size = "32M"
+# sys.stack.size = "64M"
+# sys.stack.size = "128M" # Gives new out of memory error
+# sys.stack.size = "4M"
+# sys.stack.size = "10M"
+# sys.stack.size = "100M"
+# sys.stack.size = "256M"
 
 sys.enable_extra_runtime_domain_names_conf = true
 
+# sgx.nonpie_binary = true
 sgx.debug = false
+# sgx.debug = true
 sgx.edmm_enable = {{ 'true' if env.get('EDMM', '0') == '1' else 'false' }}
-sgx.enclave_size = "1G"
-sgx.max_threads = {{ '1' if env.get('EDMM', '0') == '1' else '32' }}
+# sgx.enclave_size = "1G"
+sgx.enclave_size = "8G" # Works
+# sgx.enclave_size = "4G"
+# sgx.max_threads = {{ '1' if env.get('EDMM', '0') == '1' else '32' }}
+# sgx.max_threads = 8
+# sgx.max_threads = 16
+sgx.max_threads = 32 # Works 
+# sgx.max_threads = 64 
+# sgx.max_threads = 128
+# sgx.max_threads = 256
+# sgx.max_threads = 512
+# sgx.max_threads = 1024
+# sgx.thread_num = 128
 
 sgx.remote_attestation = "{{ ra_type }}"
 sgx.ra_client_spid = "{{ ra_client_spid }}"
@@ -59,5 +90,5 @@ sgx.trusted_files = [
   "file:{{ gramine.runtimedir() }}/",
   "file:{{ arch_libdir }}/",
   "file:/usr/{{ arch_libdir }}/",
-  "file:scripts/",
+  # "file:scripts/",
 ]
