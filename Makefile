@@ -87,7 +87,7 @@ build-docker:
 	sudo docker build -t test \
 	.	
 run-docker:
-	@sudo docker run \
+	@sudo docker run --rm --name test \
 	--device /dev/sgx_enclave \
 	--device /dev/sgx_provision \
 	test
@@ -116,8 +116,9 @@ run-direct:
 	# gramine-direct ./dafny /compile:0 scripts/Abs.dfy 
 	# gramine-direct ./dafny scripts/Abs.dfy /compile:0
 	# gramine-direct ./dafny /usr/lib/dafny/Dafny.exe scripts/Abs.dfy /compile:0
+
 run-sgx:
-	(2>&3 gramine-sgx ./dafny /version |tee ${STD_LOG}) 3>&1 | tee ${ERROR_LOG}
+	(2>&3 gramine-sgx ./dafny verify scripts/Abs.dfy |tee ${STD_LOG}) 3>&1 | tee ${ERROR_LOG}
 	# gramine-sgx ./dafny /version 2>&1| tee gramine.log
 
 	# gramine-sgx ./dafny /compile:0 scripts/Abs.dfy
