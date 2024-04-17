@@ -4,3 +4,4 @@ dafny.manifest
 dafny.manifest.sgx
 dafny.sig
 enclave-key.pem
+scripts/Abs-py
