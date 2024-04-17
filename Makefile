@@ -51,7 +51,7 @@ python.manifest: python.manifest.template
 
 # Make on Ubuntu <= 20.04 doesn't support "Rules with Grouped Targets" (`&:`),
 # see the helloworld example for details on this workaround.
-python.manifest.sgx python.sig: sgx_sign
+python.manifest.sgx python.sig: python.sgx_sign
 	@:
 
 dafny.manifest.sgx dafny.sig: sgx_sign
@@ -59,6 +59,11 @@ dafny.manifest.sgx dafny.sig: sgx_sign
 
 .INTERMEDIATE: sgx_sign
 sgx_sign: dafny.manifest
+	gramine-sgx-sign \
+		--manifest $< \
+		--output $<.sgx
+
+python.sgx_sign: python.manifest
 	gramine-sgx-sign \
 		--manifest $< \
 		--output $<.sgx
@@ -79,6 +84,10 @@ endif
 clean:
 	$(RM) *.manifest *.manifest.sgx *.token *.sig OUTPUT* *.PID TEST_STDOUT TEST_STDERR
 	$(RM) -r scripts/__pycache__
+clean-builds:
+	rm -rf scripts/*py
+	rm -rf scripts/*.dll
+	rm -rf scripts/*.json
 
 .PHONY: distclean
 distclean: clean
@@ -126,3 +135,6 @@ run-sgx:
 dafny:
 	wget https://github.com/dafny-lang/dafny/releases/download/v4.6.0/dafny-4.6.0-x64-ubuntu-20.04.zip
 	unzip dafny-4.6.0-x64-ubuntu-20.04.zip
+
+python-test:
+	var=$(realpath $(shell sh -c "command -v python3"))
