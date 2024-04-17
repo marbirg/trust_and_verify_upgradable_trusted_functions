@@ -9,6 +9,10 @@ libos.entrypoint = "{{ entrypoint }}"
 loader.log_level = "{{ log_level }}"
 
 loader.env.LD_LIBRARY_PATH = "/lib:/lib:{{ arch_libdir }}:/usr/{{ arch_libdir }}"
+loader.env.PYTHON_PATH = "/usr/bin/python3"
+loader.env.PATH = "/usr/bin/"
+
+# loader.env.PYTHON_PATH = "/usr/bin/python3"
 # loader.env.MONO_LOG_LEVEL="debug"
 loader.env.DOTNET_SYSTEM_GLOBALIZATION_INVARIANT="1"
 # loader.env.COMPlus_DefaultStackSize="100000"
@@ -40,7 +44,14 @@ fs.mounts = [
   { path = "{{ arch_libdir }}", uri = "file:{{ arch_libdir }}" },
   { path = "/usr/{{ arch_libdir }}", uri = "file:/usr/{{ arch_libdir }}" },
   { path = "/usr/lib/dafny", uri = "file:./dafny" },
+  { path = "/usr/bin/python3", uri = "file:/usr/bin/python3" },
   # { path = "/scripts/", uri = "file:./scripts" },
+
+# Add python
+{% for path in python.get_sys_path("/usr/bin/python3.10") %}
+  { path = "{{ path }}", uri = "file:{{ path }}" },
+{% endfor %}
+
 
   { type = "tmpfs", path = "/tmp" },
   { type = "encrypted", path = "/data/", uri = "file:./data", key_name = "_sgx_mrsigner" },
@@ -91,4 +102,10 @@ sgx.trusted_files = [
   "file:{{ arch_libdir }}/",
   "file:/usr/{{ arch_libdir }}/",
   # "file:scripts/",
+  
+  # Add python
+  {% for path in python.get_sys_path("/usr/bin/python3.10") %}
+  "file:{{ path }}{{ '/' if path.is_dir() else '' }}",
+  {% endfor %}
+
 ]
