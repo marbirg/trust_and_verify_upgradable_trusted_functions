@@ -1,0 +1,9 @@
+method Max(x: int, y: int) returns (z: int)
+  ensures z>=x && z>=y && (z==x || z==y)
+{
+  if x < y {
+    return y;
+  } else {
+    return x;
+  }
+}
