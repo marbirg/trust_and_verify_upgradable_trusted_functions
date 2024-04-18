@@ -81,7 +81,7 @@ ifeq ($(SGX),1)
 endif
 
 .PHONY: clean
-clean:
+clean: clean-builds
 	$(RM) *.manifest *.manifest.sgx *.token *.sig OUTPUT* *.PID TEST_STDOUT TEST_STDERR
 	$(RM) -r scripts/__pycache__
 clean-builds:
