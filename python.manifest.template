@@ -17,7 +17,11 @@ loader.env.LD_LIBRARY_PATH = "/lib:/lib:{{ arch_libdir }}:/usr/{{ arch_libdir }}
 loader.env.OMP_NUM_THREADS = "4"
 loader.env.PATH = "/usr/bin"
 
+loader.env.MALLOC_ARENA_MAX = "1"
 loader.insecure__use_cmdline_argv = true
+# sys.disallow_subprocesses = true
+
+sgx.file_check_policy = "allow_all_but_log"
 
 sys.enable_sigterm_injection = true
 
@@ -41,15 +45,19 @@ fs.mounts = [
 
   # Add Dafny
   { path = "/usr/lib/dafny", uri = "file:./dafny" },
+
+
+  { path = "/scripts/", uri = "file:./scripts" },
 ]
 
-sys.stack.size = "2M"
+# sys.stack.size = "4M"
 sys.enable_extra_runtime_domain_names_conf = true
 
 sgx.debug = false
 sgx.edmm_enable = {{ 'true' if env.get('EDMM', '0') == '1' else 'false' }}
-sgx.enclave_size = "1G"
-sgx.max_threads = {{ '1' if env.get('EDMM', '0') == '1' else '32' }}
+sgx.enclave_size = "4G"
+# sgx.max_threads = {{ '1' if env.get('EDMM', '0') == '1' else '32' }}
+sgx.max_threads = 64
 
 sgx.remote_attestation = "{{ ra_type }}"
 sgx.ra_client_spid = "{{ ra_client_spid }}"

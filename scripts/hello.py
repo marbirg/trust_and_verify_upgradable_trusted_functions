@@ -7,7 +7,13 @@ print("Hello world from python")
 
 # Command to echo 'Hello, World!'
 # command = "echo Hello, World! from system"
-command = "/usr/lib/dafny/dafny /version"
+# command = "/usr/lib/dafny/dafny /version"
+# command = "/usr/lib/dafny/dafny verify scripts/Max.dfy /compileTarget:py /out:/data/"
+# command = "/usr/lib/dafny/dafny verify scripts/Max.dfy /compileTarget:py"
+# command = "/usr/lib/dafny/dafny verify scripts/Max.dfy"
+# command = "/usr/lib/dafny/dafny scripts/Max.dfy /out:/data/Max /compileTarget:py"
+command = "/usr/lib/dafny/dafny scripts/Max.dfy /out:/scripts/maxlib /compileTarget:py"
+# command = "/usr/lib/dafny/dafny verify scripts/Abs.dfy"
 
 # Open a pipe to the command
 # pipe = os.popen(command)
@@ -22,6 +28,7 @@ output=output.decode('utf8')
 # pipe.close()
 
 # Print the output
-print(output)
+print("Command:", command)
+print("Result:",output)
 
 

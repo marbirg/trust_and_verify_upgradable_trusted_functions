@@ -6,3 +6,4 @@ dafny.sig
 enclave-key.pem
 scripts/*-py
 data/*-py
+scripts/venv
