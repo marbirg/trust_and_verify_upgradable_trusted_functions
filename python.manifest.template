@@ -5,7 +5,9 @@
 
 loader.entrypoint = "file:{{ gramine.libos }}"
 libos.entrypoint = "{{ entrypoint }}"
+# libos.entrypoint = "{{ "/usr/local/bin/uvicorn" }}"
 # libos.entrypoint = "/bin/sh"
+fs.start_dir = "/scripts"
 
 loader.log_level = "{{ log_level }}"
 
@@ -50,10 +52,14 @@ fs.mounts = [
   { path = "/scripts/", uri = "file:./scripts" },
   { path = "/templates/", uri = "file:./templates" },
   { path = "/input/", uri = "file:./input" },
+  { path = "/usr/local/bin/uvicorn", uri="file:/usr/local/bin/uvicorn"},
+
+  { type = "tmpfs", path = "/dev/shm/" },
+  # { path = "/dev/shm/", uri="file:/dev/shm"}
 ]
 
 # sys.stack.size = "4M"
-sys.enable_extra_runtime_domain_names_conf = true
+# sys.enable_extra_runtime_domain_names_conf = true
 
 sgx.debug = false
 sgx.edmm_enable = {{ 'true' if env.get('EDMM', '0') == '1' else 'false' }}
@@ -82,6 +88,8 @@ sgx.trusted_files = [
   "file:./dafny/",
   # "file:./data/",
   # "file:./data/lib/maxlib/",
+
+  "file:/usr/local/bin/uvicorn",
 ]
 
 sgx.allowed_files = [
