@@ -7,3 +7,5 @@ enclave-key.pem
 scripts/*-py
 data/*-py
 scripts/venv
+data/verified/maxlib-py/__pycache__
+**/__pycache__
