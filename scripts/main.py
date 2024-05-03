@@ -32,6 +32,19 @@ def run_max(a:int, b:int):
 
     return res
 
+@app.get("/abs/{a}")
+def run_max(a:int):
+    import sys
+    from importlib.machinery import SourceFileLoader
+    libpath = DAFNY_OUT+'Abs' + '-py'
+    sys.path.append(libpath)
+    lib = SourceFileLoader("abslib", libpath+"/module_.py").load_module()
+    Abs = lib.default__.Abs
+    res = Abs(a)
+    print("Result:", res)
+
+    return res
+
 @app.get("/sort/")
 def run_sort(l:Annotated[list[int], Query()]):
     import sys
@@ -41,26 +54,18 @@ def run_sort(l:Annotated[list[int], Query()]):
     sortlib = SourceFileLoader("sortlib", libpath+"/module_.py").load_module()
     dafnylib = SourceFileLoader("dafnylib", libpath+"/_dafny.py").load_module()
     Sort = sortlib.default__.BubbleSort
-    # res = Max(a,b)
     print("List:", l)
     Array = dafnylib.Array
-    # arr = Array([], *l)
-    # arr = Array([],len(l))
     arr = Array([],len(l))
     for i in range(len(l)):
         arr[i]=l[i]
-    # arr[1]=0
-    # arr[2]=6
-    # print(l.length())
-    # print(arr.length())
-    # length = ((arr).length(0)) - (1)
     print("Init array:",arr)
     print("Array length:", arr.length(0))
     print("List length:", len(l))
     for i in range(arr.length(0)):
         print(arr[i], end=" ")
     print()
-    res = Sort(arr)
+    Sort(arr)
     print("Sorted array:",arr)
     sorted = list(range(arr.length(0)))
     for i in range(arr.length(0)):
@@ -70,9 +75,8 @@ def run_sort(l:Annotated[list[int], Query()]):
     print()
 
     # print("dafny array len:", length)
-    print("Result:", res)
+    print("Result:", sorted)
     return sorted
-    return res
 
 @app.get("/inputs")
 async def get_inputs():
