@@ -164,3 +164,5 @@ clear-input:
 
 input-max: clear-input
 	cp input_files/Max.body input/
+input-abs: clear-input
+	cp input_files/Abs.body input/
