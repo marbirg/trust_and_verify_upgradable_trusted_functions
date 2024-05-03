@@ -49,9 +49,21 @@ python.manifest: python.manifest.template
 		-Dra_client_linkable=$(RA_CLIENT_LINKABLE) \
 		$< >$@
 
+dotnet.manifest: dotnet.manifest.template
+	gramine-manifest \
+		-Dlog_level=$(GRAMINE_LOG_LEVEL) \
+		-Darch_libdir=$(ARCH_LIBDIR) \
+		-Dentrypoint="/usr/bin/mono" \
+		-Dra_type=$(RA_TYPE) \
+		-Dra_client_spid=$(RA_CLIENT_SPID) \
+		-Dra_client_linkable=$(RA_CLIENT_LINKABLE) \
+		$< >$@
+
 # Make on Ubuntu <= 20.04 doesn't support "Rules with Grouped Targets" (`&:`),
 # see the helloworld example for details on this workaround.
 python.manifest.sgx python.sig: python.sgx_sign
+	@:
+dotnet.manifest.sgx dotnet.sig: dotnet.sgx_sign
 	@:
 
 dafny.manifest.sgx dafny.sig: sgx_sign
@@ -64,6 +76,11 @@ sgx_sign: dafny.manifest
 		--output $<.sgx
 
 python.sgx_sign: python.manifest
+	gramine-sgx-sign \
+		--manifest $< \
+		--output $<.sgx
+
+dotnet.sgx_sign: dotnet.manifest
 	gramine-sgx-sign \
 		--manifest $< \
 		--output $<.sgx
@@ -138,3 +155,12 @@ dafny:
 
 python-test:
 	var=$(realpath $(shell sh -c "command -v python3"))
+
+clear-enclave-files:
+	rm -rf data/*
+
+clear-input:
+	rm -rf input/*
+
+input-max: clear-input
+	cp input_files/Max.body input/
