@@ -1,6 +1,7 @@
 
 import sys
-from fastapi import FastAPI
+from typing import List, Annotated
+from fastapi import FastAPI, Query
 import uvicorn
 import os
 import subprocess
@@ -18,6 +19,61 @@ app=FastAPI()
 async def read_root():
     return {"Hello": "World"}
 
+@app.get("/max/{a}/{b}")
+def run_max(a:int, b:int):
+    import sys
+    from importlib.machinery import SourceFileLoader
+    libpath = DAFNY_OUT+'Max' + '-py'
+    sys.path.append(libpath)
+    lib = SourceFileLoader("maxlib", libpath+"/module_.py").load_module()
+    Max = lib.default__.Max
+    res = Max(a,b)
+    print("Result:", res)
+
+    return res
+
+@app.get("/sort/")
+def run_sort(l:Annotated[list[int], Query()]):
+    import sys
+    from importlib.machinery import SourceFileLoader
+    libpath = DAFNY_OUT+'BubbleSortDafny' + '-py'
+    sys.path.append(libpath)
+    sortlib = SourceFileLoader("sortlib", libpath+"/module_.py").load_module()
+    dafnylib = SourceFileLoader("dafnylib", libpath+"/_dafny.py").load_module()
+    Sort = sortlib.default__.BubbleSort
+    # res = Max(a,b)
+    print("List:", l)
+    Array = dafnylib.Array
+    # arr = Array([], *l)
+    # arr = Array([],len(l))
+    arr = Array([],len(l))
+    for i in range(len(l)):
+        arr[i]=l[i]
+    # arr[1]=0
+    # arr[2]=6
+    # print(l.length())
+    # print(arr.length())
+    # length = ((arr).length(0)) - (1)
+    print("Init array:",arr)
+    print("Array length:", arr.length(0))
+    print("List length:", len(l))
+    for i in range(arr.length(0)):
+        print(arr[i], end=" ")
+    print()
+    res = Sort(arr)
+    print("Sorted array:",arr)
+    sorted = list(range(arr.length(0)))
+    for i in range(arr.length(0)):
+        print(arr[i], end=" ")
+        sorted[i]=arr[i]
+
+    print()
+
+    # print("dafny array len:", length)
+    print("Result:", res)
+    return sorted
+    return res
+
 @app.get("/inputs")
 async def get_inputs():
     inputs = read_input()
@@ -31,8 +87,8 @@ async def get_inputs():
     res = verify_all(path_list)
     print("Result:", res)
 
-    return {"status":200}
-    return res
+    # return {"status":200}
+    return {"result":res}
     # fname = 'BubbleSortDafny.dfy'
     # path = STAGING_DIR+fname
     # if not os.path.exists(path):
