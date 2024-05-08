@@ -9,10 +9,20 @@ import time
 from threading import Thread
 # from multiprocessing import Process
 
-STAGING_DIR = '/data/tmp/'
-DAFNY_OUT = "/data/verified/"
-DAFNY_BIN = "/usr/lib/dafny/dafny"
-DAFNY_TARGET = '/compileTarget:py'
+from conf_lib import get_config
+config = get_config()
+# import local_config as local_config
+# import enclave_config as enclave_config
+# ENV = os.environ.get("ENV")
+# print("Environment:", ENV)
+# if ENV == 'local':
+#     config = local_config
+# else:
+#     config = enclave_config
+# STAGING_DIR = '/data/tmp/'
+# DAFNY_OUT = "/data/verified/"
+# DAFNY_BIN = "/usr/lib/dafny/dafny"
+# DAFNY_TARGET = '/compileTarget:py'
 
 app=FastAPI()
 @app.get("/")
@@ -21,25 +31,28 @@ async def read_root():
 
 @app.get("/max/{a}/{b}")
 def run_max(a:int, b:int):
-    import sys
-    from importlib.machinery import SourceFileLoader
-    libpath = DAFNY_OUT+'Max' + '-py'
-    sys.path.append(libpath)
-    lib = SourceFileLoader("maxlib", libpath+"/module_.py").load_module()
-    Max = lib.default__.Max
+    from functions import verified_max as Max
+    # import sys
+    # from importlib.machinery import SourceFileLoader
+    # libpath = DAFNY_OUT+'Max' + '-py'
+    # sys.path.append(libpath)
+    # lib = SourceFileLoader("maxlib", libpath+"/module_.py").load_module()
+    # Max = lib.default__.Max
+    # res = Max(a,b)
     res = Max(a,b)
     print("Result:", res)
 
     return res
 
 @app.get("/abs/{a}")
-def run_max(a:int):
-    import sys
-    from importlib.machinery import SourceFileLoader
-    libpath = DAFNY_OUT+'Abs' + '-py'
-    sys.path.append(libpath)
-    lib = SourceFileLoader("abslib", libpath+"/module_.py").load_module()
-    Abs = lib.default__.Abs
+def run_abs(a:int):
+    from functions import verified_abs as Abs
+    # import sys
+    # from importlib.machinery import SourceFileLoader
+    # libpath = DAFNY_OUT+'Abs' + '-py'
+    # sys.path.append(libpath)
+    # lib = SourceFileLoader("abslib", libpath+"/module_.py").load_module()
+    # Abs = lib.default__.Abs
     res = Abs(a)
     print("Result:", res)
 
@@ -47,36 +60,42 @@ def run_max(a:int):
 
 @app.get("/sort/")
 def run_sort(l:Annotated[list[int], Query()]):
-    import sys
-    from importlib.machinery import SourceFileLoader
-    libpath = DAFNY_OUT+'BubbleSortDafny' + '-py'
-    sys.path.append(libpath)
-    sortlib = SourceFileLoader("sortlib", libpath+"/module_.py").load_module()
-    dafnylib = SourceFileLoader("dafnylib", libpath+"/_dafny.py").load_module()
-    Sort = sortlib.default__.BubbleSort
-    print("List:", l)
-    Array = dafnylib.Array
-    arr = Array([],len(l))
-    for i in range(len(l)):
-        arr[i]=l[i]
-    print("Init array:",arr)
-    print("Array length:", arr.length(0))
-    print("List length:", len(l))
-    for i in range(arr.length(0)):
-        print(arr[i], end=" ")
-    print()
-    Sort(arr)
-    print("Sorted array:",arr)
-    sorted = list(range(arr.length(0)))
-    for i in range(arr.length(0)):
-        print(arr[i], end=" ")
-        sorted[i]=arr[i]
-
-    print()
-
-    # print("dafny array len:", length)
+    from functions import verified_sort as Sort
+    sorted = Sort(l)
+    print("Initial:", l)
     print("Result:", sorted)
     return sorted
+
+    # import sys
+    # from importlib.machinery import SourceFileLoader
+    # libpath = DAFNY_OUT+'BubbleSortDafny' + '-py'
+    # sys.path.append(libpath)
+    # sortlib = SourceFileLoader("sortlib", libpath+"/module_.py").load_module()
+    # dafnylib = SourceFileLoader("dafnylib", libpath+"/_dafny.py").load_module()
+    # Sort = sortlib.default__.BubbleSort
+    # print("List:", l)
+    # Array = dafnylib.Array
+    # arr = Array([],len(l))
+    # for i in range(len(l)):
+    #     arr[i]=l[i]
+    # print("Init array:",arr)
+    # print("Array length:", arr.length(0))
+    # print("List length:", len(l))
+    # for i in range(arr.length(0)):
+    #     print(arr[i], end=" ")
+    # print()
+    # Sort(arr)
+    # print("Sorted array:",arr)
+    # sorted = list(range(arr.length(0)))
+    # for i in range(arr.length(0)):
+    #     print(arr[i], end=" ")
+    #     sorted[i]=arr[i]
+
+    # print()
+
+    # # print("dafny array len:", length)
+    # print("Result:", sorted)
+    # return sorted
 
 @app.get("/inputs")
 async def get_inputs():
@@ -86,7 +105,7 @@ async def get_inputs():
     path_list = []
     for fname in inputs:
         fname = replace_suffix(fname,'dfy')
-        path_list.append(STAGING_DIR + fname)
+        path_list.append(config.STAGING_DIR + fname)
     # return path_list
     res = verify_all(path_list)
     print("Result:", res)
@@ -135,13 +154,13 @@ def test_extract_errors_from_output():
 def verify_dafny_file(file_path):
     print("Should verify file:", file_path)
     dafny_file = file_path.split('/')[-1]
-    output = DAFNY_OUT+dafny_file
+    output = config.DAFNY_OUT+dafny_file
     print("File name:", dafny_file)
     command = "{binary} {path} /out:{out} {target}".format(
-        binary=DAFNY_BIN,
+        binary=config.DAFNY_BIN,
         path=file_path,
         out=output,
-        target=DAFNY_TARGET
+        target=config.DAFNY_TARGET
     )
     print("Command:", command)
 
@@ -182,7 +201,8 @@ def read_files_in_dir(dir_path):
 # Temporary help function, should be replaced by getting data in web request
 def read_input():
     inputs = {}
-    input_dir='/input/'
+    # input_dir='/input/'
+    input_dir = config.INPUT_DIR
     input_files=os.listdir(input_dir)
     for fname in input_files:
         path=input_dir+fname
@@ -193,7 +213,8 @@ def read_input():
 
 def read_templates():
     templates = {}
-    template_dir='/templates/'
+    # template_dir='/templates/'
+    template_dir=config.TEMPLATE_DIR
     template_files=os.listdir(template_dir)
     for fname in template_files:
         path=template_dir+fname
@@ -218,9 +239,9 @@ def create_dafny_files(inputs):
         if template_name in templates:
             dafny_file = merge(templates[template_name], inputs[k])
             dafny_file_name = replace_suffix(k,'dfy')
-            path = STAGING_DIR+dafny_file_name
-            if not os.path.exists(STAGING_DIR):
-                os.mkdir(STAGING_DIR)
+            path = config.STAGING_DIR+dafny_file_name
+            if not os.path.exists(config.STAGING_DIR):
+                os.mkdir(config.STAGING_DIR)
             with open(path,'w') as f:
                 f.write(dafny_file)
         else:
@@ -230,4 +251,11 @@ def create_dafny_files(inputs):
 if __name__=='__main__':
     print("Hello world!")
     print(sys.path)
-    uvicorn.run("main:app", loop='asyncio', host='0.0.0.0', port=12341)
+    print("Config settings:")
+    print(config)
+    print(config.STAGING_DIR)
+    print(config.DAFNY_OUT)
+    print(config.DAFNY_BIN)
+    print(config.DAFNY_TARGET) 
+
+    uvicorn.run("main:app", loop='asyncio', host='0.0.0.0', port=12341, reload=True)
