@@ -166,3 +166,7 @@ input-max: clear-input
 	cp input_files/Max.body input/
 input-abs: clear-input
 	cp input_files/Abs.body input/
+input-sort: clear-input
+	cp input_files/BubbeSortDafny.body input/
+input-all: clear-input
+	cp input_files/*.body input/
