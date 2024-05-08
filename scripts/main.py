@@ -46,13 +46,16 @@ def run_max(a:int, b:int):
 
 @app.get("/abs/{a}")
 def run_abs(a:int):
+    print("Run abs with arg:", a, flush=True)
     from functions import verified_abs as Abs
+    print("Function imported", flush=True)
     # import sys
     # from importlib.machinery import SourceFileLoader
     # libpath = DAFNY_OUT+'Abs' + '-py'
     # sys.path.append(libpath)
     # lib = SourceFileLoader("abslib", libpath+"/module_.py").load_module()
     # Abs = lib.default__.Abs
+    # return 3
     res = Abs(a)
     print("Result:", res)
 
@@ -258,4 +261,5 @@ if __name__=='__main__':
     print(config.DAFNY_BIN)
     print(config.DAFNY_TARGET) 
 
-    uvicorn.run("main:app", loop='asyncio', host='0.0.0.0', port=12341, reload=True)
+    # uvicorn.run("main:app", loop='asyncio', host='0.0.0.0', port=12341, reload=True)
+    uvicorn.run("main:app", loop='asyncio', host='0.0.0.0', port=12341)
