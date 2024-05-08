@@ -102,7 +102,7 @@ clean: clean-builds
 	$(RM) *.manifest *.manifest.sgx *.token *.sig OUTPUT* *.PID TEST_STDOUT TEST_STDERR
 	$(RM) -r scripts/__pycache__
 clean-builds:
-	rm -rf scripts/*py
+	# rm -rf scripts/*py
 	rm -rf scripts/*.dll
 	rm -rf scripts/*.json
 
