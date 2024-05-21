@@ -7,6 +7,7 @@ import os
 import subprocess
 import time
 from threading import Thread
+from pydantic import BaseModel
 # from multiprocessing import Process
 
 from conf_lib import get_config
@@ -100,6 +101,39 @@ def run_sort(l:Annotated[list[int], Query()]):
     # print("Result:", sorted)
     # return sorted
 
+class ListItem(BaseModel):
+    value: list[int] = [9,0,4,1,5,2,3,6,7,8]
+
+class CodeItem(BaseModel):
+    name: str = 'Max'
+    body: str = '''if x < y {
+  return y;
+} else {
+  return x;
+}
+'''
+   
+@app.post("/sort/")
+# def run_sort(l:Annotated[list[int], Query()]):
+def run_sort(lstJson:ListItem):
+    from functions import verified_sort as Sort
+    print(lstJson)
+    l = lstJson.value
+    sorted = Sort(l)
+    print("Initial:", l)
+    print("Result:", sorted)
+    return sorted
+
+@app.post("/deploy")
+async def deploy_code(codeObj:CodeItem):
+    print(codeObj)
+    create_dafny_file(codeObj.name, codeObj.body)
+    path = config.STAGING_DIR + codeObj.name + '.dfy'
+    print("Path to verify:", path)
+    nerrors = verify_dafny_file(path)
+    response = codeObj.name + " verified with " + str(nerrors) + " errors"
+    return response
+
 @app.get("/inputs")
 async def get_inputs():
     inputs = read_input()
@@ -144,6 +178,7 @@ def verify_all(path_list):
         results.append(result_string)
 
     return results
+
 
 def extract_errors_from_output(output):
     errors = output.split(',')[-1].strip()
@@ -226,6 +261,19 @@ def read_templates():
             templates[fname]=f.read()
     return templates
 
+def load_specification(name):
+    specification = ""
+    template_dir=config.TEMPLATE_DIR
+    template_files=os.listdir(template_dir)
+    path=template_dir+name
+    try:
+        with open(path,"r") as f:
+            specification=f.read()
+        return specification
+    except Exception as e:
+        print(e)
+        return ""
+
 def replace_suffix(string, new_suffix):
     string = string.split('.')
     string[-1]=new_suffix
@@ -251,6 +299,37 @@ def create_dafny_files(inputs):
             print("No corresponding template found")
         print("---")
 
+def create_dafny_file(name:str, body:str):
+    specification_name = name+'.template'
+    specification = load_specification(specification_name)
+    if not specification=="":
+        dafny_file = merge(specification,body)
+        dafny_file_name = name+'.dfy'
+        path = config.STAGING_DIR+dafny_file_name
+        if not os.path.exists(config.STAGING_DIR):
+            os.mkdir(config.STAGING_DIR)
+        with open(path,'w') as f:
+            f.write(dafny_file)
+            print("Written file",path )
+    else:
+        print("No corresponding template found")
+        raise Exception("No specification with that name found")
+
+
+    # for k in inputs:
+    #     template_name = replace_suffix(k, 'template')
+    #     if template_name in templates:
+    #         dafny_file = merge(templates[template_name], inputs[k])
+    #         dafny_file_name = replace_suffix(k,'dfy')
+    #         path = config.STAGING_DIR+dafny_file_name
+    #         if not os.path.exists(config.STAGING_DIR):
+    #             os.mkdir(config.STAGING_DIR)
+    #         with open(path,'w') as f:
+    #             f.write(dafny_file)
+    #     else:
+    #         print("No corresponding template found")
+    #     print("---")
+
 if __name__=='__main__':
     print("Hello world!")
     print(sys.path)
@@ -262,4 +341,7 @@ if __name__=='__main__':
     print(config.DAFNY_TARGET) 
 
     # uvicorn.run("main:app", loop='asyncio', host='0.0.0.0', port=12341, reload=True)
-    uvicorn.run("main:app", loop='asyncio', host='0.0.0.0', port=12341)
+    
+    ENV = os.environ.get("ENV")
+    reload = True if ENV=='local' else False
+    uvicorn.run("main:app", loop='asyncio', host='0.0.0.0', port=12341, reload=reload)
