@@ -13,3 +13,4 @@ data/verified
 nonenc_lib/maxlib
 input
 local/verified
+client/venv
