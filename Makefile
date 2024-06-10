@@ -170,3 +170,6 @@ input-sort: clear-input
 	cp input_files/BubbeSortDafny.body input/
 input-all: clear-input
 	cp input_files/*.body input/
+
+run-local-dev:
+	. ./venv/bin/activate && ENV=local python scripts/main.py
