@@ -329,6 +329,36 @@ def create_dafny_file(name:str, body:str):
     #     else:
     #         print("No corresponding template found")
     #     print("---")
+from fastapi.responses import HTMLResponse
+@app.get("/bandit")
+def run_bandit():
+    print("Should run bandit")
+    binary = 'bandit'
+    arg = '-r . -f html'
+    report = 'reports/bandit.report.html'
+    target = 'scripts' 
+    output = f'-o {report}'
+    command = f"bandit -r {target} -f html -o {report}"
+    # command = f"ls"
+    print("Command:", command)
+
+    try:
+        output = subprocess.check_output(['/usr/bin/bash','-c', command])
+
+        print("Bandit done")
+        print("Output")
+    except Exception as e:
+        print(str(e))
+    # return 200
+    with open(report,'r') as f:
+        response = f.read()
+    print("Response:", response)
+    return HTMLResponse(content=response, status_code=200)
+    return response
+
+    return output
+
+    return 200
 
 if __name__=='__main__':
     print("Hello world!")
