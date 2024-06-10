@@ -126,12 +126,19 @@ def run_sort(lstJson:ListItem):
 
 @app.post("/deploy")
 async def deploy_code(codeObj:CodeItem):
-    print(codeObj)
-    create_dafny_file(codeObj.name, codeObj.body)
-    path = config.STAGING_DIR + codeObj.name + '.dfy'
-    print("Path to verify:", path)
-    nerrors = verify_dafny_file(path)
-    response = codeObj.name + " verified with " + str(nerrors) + " errors"
+    print(codeObj, flush=True)
+    try:
+        create_dafny_file(codeObj.name, codeObj.body)
+        path = config.STAGING_DIR + codeObj.name + '.dfy'
+        print("Path to verify:", path)
+        nerrors = verify_dafny_file(path)
+        if nerrors>=0:
+            response = codeObj.name + " verified with " + str(nerrors) + " errors"
+        else:
+            response = "Verification did not succeed"
+    except Exception as e:
+        response = str(e)
+    
     return response
 
 @app.get("/inputs")
@@ -202,7 +209,14 @@ def verify_dafny_file(file_path):
     )
     print("Command:", command)
 
-    output = subprocess.check_output(['/usr/bin/bash','-c', command])
+    try:
+        output = subprocess.check_output(['/usr/bin/bash','-c', command])
+    except Exception as e:
+        print("Caught exception")
+        print("Error:",e,flush=True)
+        return -1
+    print("Dafny output:")
+    print(output,flush=True)
     # output = subprocess.run(['/usr/bin/bash','-c', command])
     output=output.decode('utf8')
     print("Output:", output, flush=True)
