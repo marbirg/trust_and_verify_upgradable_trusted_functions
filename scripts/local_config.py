@@ -6,4 +6,5 @@ DAFNY_BIN = base+"/dafny/dafny"
 DAFNY_TARGET = '/compileTarget:py'
 INPUT_DIR=base+'/local/input/'
 TEMPLATE_DIR=base+'/templates/'
+REPORT_DIR=base+'/reports/'
 DAFNY_PYTHON_SUFFIX = '-py'

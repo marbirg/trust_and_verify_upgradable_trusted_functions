@@ -4,4 +4,5 @@ DAFNY_BIN = "/usr/lib/dafny/dafny"
 DAFNY_TARGET = '/compileTarget:py'
 INPUT_DIR='/input/'
 TEMPLATE_DIR='/templates/'
+REPORT_DIR='/reports/'
 DAFNY_PYTHON_SUFFIX = '-py'
