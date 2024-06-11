@@ -3,7 +3,7 @@ import sys
 from typing import List, Annotated
 from fastapi import FastAPI, Query
 import uvicorn
-import os
+import os 
 import subprocess
 import time
 from threading import Thread
@@ -345,64 +345,40 @@ def create_dafny_file(name:str, body:str):
     #     print("---")
 import traceback
 from fastapi.responses import HTMLResponse
-import re
-import sys
-from bandit.cli.main import main
+# import re
+# import sys
+# from bandit.cli.main import main
 @app.get("/bandit")
 def run_bandit():
     print("Should run bandit", flush=True)
-    binary = 'bandit'
-    arg = '-r . -f html'
-    if not os.path.exists(config.REPORT_DIR):
-        os.mkdir(config.REPORT_DIR)
-    report = config.REPORT_DIR + 'bandit.report.html'
-    target = 'scripts' 
-    output = f'-o {report}'
-    command = f"bandit -r {target} -f html -o {report}"
-    # command = f"python -m bandit -h"
-    # command = f"python -v"
-    # command = f"ls"
-    # command = f"which python"
+    python = '/usr/bin/python3'
+    format = 'html'
+    target = config.BANDIT_TARGET
+    command = [python,'-m', 'bandit', '-r', target, '-f', format, '--exit-zero']
     print("Command:", command)
 
     try:
         print("Try to execute command",flush=True)
-        # output = subprocess.check_output(['/usr/bin/bash','-c', command])
-        # sys.argv[0] = re.sub(r'(-script\.pyw|\.exe)?$', '', '-h')
-        # sys.exit(main())
-
-        # output = subprocess.check_output(['/usr/bin/bash','-c', '/usr/local/bin/bandit','-h'])
-        output = subprocess.check_output(['/usr/bin/python3','-m', 'bandit', '-r', '/scripts/', '-f', 'html', '--exit-zero'])
-        # output = subprocess.check_output(['/usr/bin/python3','--version'])
+        output = subprocess.check_output(command)
 
         print("Bandit done")
-        print("Output:", output, flush=True)
+        # print("Output:", output, flush=True)
         return HTMLResponse(content=output, status_code=200)
     except Exception as e:
         print("Error running bandit")
         print("Message:", str(e), flush=True)
         traceback.print_exc()
-
-    return 200
-    with open(report,'r') as f:
-        response = f.read()
-    print("Response:", response)
-    return HTMLResponse(content=response, status_code=200)
-    return response
-
-    return output
-
-    return 200
+        return 500
 
 if __name__=='__main__':
-    print("Hello world!")
-    print(sys.path)
-    print("Config settings:")
-    print(config)
-    print(config.STAGING_DIR)
-    print(config.DAFNY_OUT)
-    print(config.DAFNY_BIN)
-    print(config.DAFNY_TARGET) 
+    print("Starting server...")
+    # print(sys.path)
+    # print("Config settings:")
+    # print(config)
+    # print(config.STAGING_DIR)
+    # print(config.DAFNY_OUT)
+    # print(config.DAFNY_BIN)
+    # print(config.DAFNY_TARGET) 
 
     # uvicorn.run("main:app", loop='asyncio', host='0.0.0.0', port=12341, reload=True)
     
