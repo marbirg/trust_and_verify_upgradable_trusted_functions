@@ -8,6 +8,7 @@ import subprocess
 import time
 from threading import Thread
 from pydantic import BaseModel
+import ssl
 # from multiprocessing import Process
 
 from conf_lib import get_config
@@ -370,6 +371,57 @@ def run_bandit():
         traceback.print_exc()
         return 500
 
+@app.get("/cert")
+def run_bandit():
+    with open('/tmp/cert.pem') as f:
+        cert = f.read()
+    return cert
+
+@app.get("/report")
+def report():
+    if not os.path.exists("/dev/attestation/report"):
+        print("Cannot find `/dev/attestation/report`; are you running under SGX?")
+        sys.exit(1)
+
+    with open("/dev/attestation/my_target_info", "rb") as f:
+        my_target_info = f.read()
+
+    with open("/dev/attestation/target_info", "wb") as f:
+        f.write(my_target_info)
+
+    with open("/dev/attestation/user_report_data", "wb") as f:
+        f.write(b'\0'*64)
+
+    with open("/dev/attestation/report", "rb") as f:
+        report = f.read()
+
+    report_data = []
+    report_data.append(f"Generated SGX report with size = {len(report)} and the following fields:")
+    report_data.append(f"  ATTRIBUTES.FLAGS: {report[48:56].hex()}  [ Debug bit: {report[48] & 2 > 0} ]")
+    report_data.append(f"  ATTRIBUTES.XFRM:  {report[56:64].hex()}")
+    report_data.append(f"  MRENCLAVE:        {report[64:96].hex()}")
+    report_data.append(f"  MRSIGNER:         {report[128:160].hex()}")
+    report_data.append(f"  ISVPRODID:        {report[256:258].hex()}")
+    report_data.append(f"  ISVSVN:           {report[258:260].hex()}")
+    report_data.append(f"  REPORTDATA:       {report[320:352].hex()}")
+    report_data.append(f"                    {report[352:384].hex()}")
+
+    raw_data = []
+    raw_data.append(f"Generated (RAW) SGX report with size = {len(report)} and the following fields:")
+    raw_data.append(f"  ATTRIBUTES.FLAGS: {report[48:56]}  [ Debug bit: {report[48] & 2 > 0} ]")
+    raw_data.append(f"  ATTRIBUTES.XFRM:  {report[56:64]}")
+    raw_data.append(f"  MRENCLAVE:        {report[64:96]}")
+    raw_data.append(f"  MRSIGNER:         {report[128:160]}")
+    raw_data.append(f"  ISVPRODID:        {report[256:258]}")
+    raw_data.append(f"  ISVSVN:           {report[258:260]}")
+    raw_data.append(f"  REPORTDATA:       {report[320:352]}")
+    raw_data.append(f"                    {report[352:384]}")
+
+    str_report = "\n".join(report_data)
+    print(str_report)
+    print("\n".join(raw_data))
+    return HTMLResponse(content=str_report.replace("\n", "<br>"), status_code=200)
+
 if __name__=='__main__':
     print("Starting server...")
     # print(sys.path)
@@ -381,7 +433,16 @@ if __name__=='__main__':
     # print(config.DAFNY_TARGET) 
 
     # uvicorn.run("main:app", loop='asyncio', host='0.0.0.0', port=12341, reload=True)
+    ssl_context = ssl.SSLContext(ssl.PROTOCOL_TLS_SERVER)
+    ssl_context.load_cert_chain('/tmp/cert.pem', keyfile='/tmp/key.pem')
     
     ENV = os.environ.get("ENV")
     reload = True if ENV=='local' else False
-    uvicorn.run("main:app", loop='asyncio', host='0.0.0.0', port=12341, reload=reload)
+    uvicorn.run("main:app",
+                loop='asyncio',
+                host='0.0.0.0',
+                port=12341,
+                ssl_keyfile='/tmp/key.pem',
+                ssl_certfile='/tmp/cert.pem',
+                reload=reload
+                )

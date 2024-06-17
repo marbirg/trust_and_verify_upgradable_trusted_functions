@@ -1,10 +1,17 @@
+
 # Copyright (C) 2023 Gramine contributors
 # SPDX-License-Identifier: BSD-3-Clause
 
 # Python3 manifest example
-
+# loader.insecure__use_cmdline_argv = true
+loader.argv = [
+    "gramine-ratls", "/tmp/cert.pem", "/tmp/key.pem", "--",
+    "/usr/bin/python3", "main.py",
+]
 loader.entrypoint = "file:{{ gramine.libos }}"
-libos.entrypoint = "{{ entrypoint }}"
+# libos.entrypoint = "{{ entrypoint }}"
+libos.entrypoint = "/gramine-ratls"
+
 # libos.entrypoint = "{{ "/usr/local/bin/uvicorn" }}"
 # libos.entrypoint = "/bin/sh"
 fs.start_dir = "/scripts"
@@ -20,7 +27,6 @@ loader.env.OMP_NUM_THREADS = "4"
 loader.env.PATH = "/usr/bin"
 
 loader.env.MALLOC_ARENA_MAX = "1"
-loader.insecure__use_cmdline_argv = true
 # sys.disallow_subprocesses = true
 
 # sgx.file_check_policy = "allow_all_but_log"
@@ -29,6 +35,7 @@ sys.enable_sigterm_injection = true
 
 fs.mounts = [
   { path = "/lib", uri = "file:{{ gramine.runtimedir() }}" },
+  { path = "/gramine-ratls", uri = "file:/usr/bin/gramine-ratls" },
   { path = "{{ arch_libdir }}", uri = "file:{{ arch_libdir }}" },
   { path = "/usr/{{ arch_libdir }}", uri = "file:/usr/{{ arch_libdir }}" },
 
@@ -66,7 +73,8 @@ fs.mounts = [
 # sys.stack.size = "4M"
 # sys.enable_extra_runtime_domain_names_conf = true
 
-sgx.debug = false
+# sgx.debug = false
+sgx.debug = true
 sgx.edmm_enable = {{ 'true' if env.get('EDMM', '0') == '1' else 'false' }}
 sgx.enclave_size = "4G"
 # sgx.max_threads = {{ '1' if env.get('EDMM', '0') == '1' else '32' }}

@@ -18,14 +18,16 @@ ifeq ($(SGX),1)
 all: python.manifest.sgx python.sig
 endif
 
-RA_TYPE ?= none
-# RA_TYPE ?= dcap
+# RA_TYPE ?= none
+RA_TYPE ?= dcap
 RA_CLIENT_SPID ?=
 RA_CLIENT_LINKABLE ?= 0
 
 build: clean
 	${MAKE} SGX=1 
 
+print-path:
+	echo $(realpath $(shell sh -c "command -v python3"))
 build-debug: clean
 	${MAKE} SGX=1 DEBUG=1
 
