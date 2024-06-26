@@ -9,6 +9,11 @@ import time
 from threading import Thread
 from pydantic import BaseModel
 import ssl
+import json
+
+import traceback
+from fastapi.responses import HTMLResponse
+from fastapi.responses import JSONResponse
 # from multiprocessing import Process
 
 from conf_lib import get_config
@@ -171,6 +176,33 @@ async def get_inputs():
     # return staged
     # # return {"staged": {}}
 
+@app.post("/verify")
+async def verify_dafny_code(codeObj:CodeItem):
+    # print(codeObj)
+    name = codeObj.name.replace(" ", "_")
+    path = config.STAGING_DIR+name
+    path = config.STAGING_DIR + 'tmp.dfy'
+    print(codeObj.name)
+    # print(path)
+    # print(codeObj.body)
+    with open(path, 'w+') as f:
+        f.write(codeObj.body)
+        
+    print("Should verify dafny code", flush=True)
+    start = time.time()
+    errors = verify_dafny_file(path, compile=False)
+    total = time.time()-start
+    try:
+        os.remove(path)
+    except e:
+        print("Could not remove files")
+        print(e)
+        print()
+
+    result = {'errors': errors, 'time': total}
+    return JSONResponse(content=result)
+    # return {'errors', errors, 'time:', total}
+    
 def verify_all(path_list):
     print(path_list)
     results = []
@@ -189,6 +221,7 @@ def verify_all(path_list):
 
 
 def extract_errors_from_output(output):
+    print('error output:', output)
     errors = output.split(',')[-1].strip()
     nerrors = errors.split(" ")[0]
     return int(nerrors)
@@ -197,18 +230,25 @@ def test_extract_errors_from_output():
     out = "Dafny program verifier finished with 4 verified, 0 errors"
     assert extract_errors_from_output(out)==0
 
-def verify_dafny_file(file_path):
+def verify_dafny_file(file_path, compile=True):
     print("Should verify file:", file_path)
     dafny_file = file_path.split('/')[-1]
     output = config.DAFNY_OUT+dafny_file
     print("File name:", dafny_file)
-    command = "{binary} {path} /out:{out} {target}".format(
-        binary=config.DAFNY_BIN,
-        path=file_path,
-        out=output,
-        target=config.DAFNY_TARGET
-    )
-    print("Command:", command)
+    if compile:
+        command = "{binary} '{path}' /out:{out} {target}".format(
+            binary=config.DAFNY_BIN,
+            path=file_path,
+            out=output,
+            target=config.DAFNY_TARGET
+        )
+    else:
+        command = "{binary} verify '{path}'".format(
+            binary=config.DAFNY_BIN,
+            path=file_path,
+        )
+
+    print("Command:", command, flush=True)
 
     try:
         output = subprocess.check_output(['/usr/bin/bash','-c', command])
@@ -217,12 +257,12 @@ def verify_dafny_file(file_path):
         print("Error:",e,flush=True)
         return -1
     print("Dafny output:")
-    print(output,flush=True)
+    # print(output,flush=True)
     # output = subprocess.run(['/usr/bin/bash','-c', command])
     output=output.decode('utf8')
     print("Output:", output, flush=True)
     expected="Dafny program verifier finished with 1 verified, 0 errors"
-    result = output.strip().split('\n')[0]
+    result = output.strip().split('\n')[-1]
     nerrors = extract_errors_from_output(result)
     return nerrors
     # return 'done'
@@ -344,8 +384,6 @@ def create_dafny_file(name:str, body:str):
     #     else:
     #         print("No corresponding template found")
     #     print("---")
-import traceback
-from fastapi.responses import HTMLResponse
 # import re
 # import sys
 # from bandit.cli.main import main
@@ -433,16 +471,25 @@ if __name__=='__main__':
     # print(config.DAFNY_TARGET) 
 
     # uvicorn.run("main:app", loop='asyncio', host='0.0.0.0', port=12341, reload=True)
-    ssl_context = ssl.SSLContext(ssl.PROTOCOL_TLS_SERVER)
-    ssl_context.load_cert_chain('/tmp/cert.pem', keyfile='/tmp/key.pem')
-    
     ENV = os.environ.get("ENV")
+
+    # ssl_context = ssl.SSLContext(ssl.PROTOCOL_TLS_SERVER)
+    # Use openssl to generate self signed cert:
+    # openssl req -x509 -newkey rsa:4096 -nodes -out cert.pem -keyout key.pem -days 365
+    if ENV=='local':
+        cert_file = './local/ssl/cert.pem'
+        key_file = './local/ssl/key.pem'
+    else:
+        cert_file='/tmp/cert.pem'
+        key_file='/tmp/key.pem'
+        # ssl_context.load_cert_chain('/tmp/cert.pem', keyfile='/tmp/key.pem')
+    
     reload = True if ENV=='local' else False
     uvicorn.run("main:app",
                 loop='asyncio',
                 host='0.0.0.0',
                 port=12341,
-                ssl_keyfile='/tmp/key.pem',
-                ssl_certfile='/tmp/cert.pem',
+                ssl_keyfile=key_file,
+                ssl_certfile=cert_file,
                 reload=reload
                 )
