@@ -54,6 +54,18 @@ def verified_abs(a:int):
     Abs = lib.default__.Abs
     return Abs(a)
 
+def list_to_dafny_array(Array, l:list):
+    arr = Array([],len(l))
+    for i in range(len(l)):
+        arr[i]=l[i]
+    return arr
+
+def dafny_array_to_list(arr):
+    lst=list(range(arr.length(0)))
+    for i in range(arr.length(0)):
+        lst[i]=arr[i]
+    return lst
+
 class DafnyArray:
     func_name = 'BubbleSortDafny'
     try:
@@ -77,6 +89,28 @@ class DafnyArray:
             lst[i]=arr[i]
         return lst
 
+class DafnyObjArray:
+    def __init__(self, libname:str):
+        try:
+            self.dafnylib = get_dafny_lib(libname)
+            self.Array = self.dafnylib.Array
+        except Exception as e:
+            print("Caught exception in DafnyArray:")
+            print(e)
+
+    def list_to_dafny_array(self, l:list):
+        arr = self.Array([],len(l))
+        for i in range(len(l)):
+            arr[i]=l[i]
+        return arr
+
+    def dafny_array_to_list(self, arr):
+        lst=list(range(arr.length(0)))
+        for i in range(arr.length(0)):
+            lst[i]=arr[i]
+        return lst
+
+
 def verified_sort(l):
     func_name = 'BubbleSortDafny'
     lib = get_module(func_name)
@@ -85,3 +119,12 @@ def verified_sort(l):
     Sort(arr)
     sorted = DafnyArray.dafny_array_to_list(arr)
     return sorted
+
+def verified_count(zone_id:int, zone_count:list[int]):
+    func_name = 'Count'
+    lib = get_module(func_name)
+    Count = lib.default__.Count
+    dafnyArray = DafnyObjArray(func_name)
+    arr = dafnyArray.list_to_dafny_array(zone_count)
+    res = Count(zone_id, arr)
+    return res
