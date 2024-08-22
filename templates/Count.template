@@ -1,0 +1,5 @@
+method Count(i:int, a: array<int>) returns (c:int)
+        requires a != null
+        requires a.Length>0
+
+	ensures c>100 || c==0
