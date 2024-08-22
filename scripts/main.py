@@ -14,27 +14,44 @@ import json
 import traceback
 from fastapi.responses import HTMLResponse
 from fastapi.responses import JSONResponse
-# from multiprocessing import Process
 
 from conf_lib import get_config
-config = get_config()
-# import local_config as local_config
-# import enclave_config as enclave_config
-# ENV = os.environ.get("ENV")
-# print("Environment:", ENV)
-# if ENV == 'local':
-#     config = local_config
-# else:
-#     config = enclave_config
-# STAGING_DIR = '/data/tmp/'
-# DAFNY_OUT = "/data/verified/"
-# DAFNY_BIN = "/usr/lib/dafny/dafny"
-# DAFNY_TARGET = '/compileTarget:py'
 
+from taxi_congestion import router as taxi_router
+
+config = get_config()
 app=FastAPI()
+
+app.include_router(taxi_router, prefix='/taxi')
+
+class ListItem(BaseModel):
+    value: list[int] = [9,0,4,1,5,2,3,6,7,8]
+
+class CodeItem(BaseModel):
+    name: str = 'Max'
+    body: str = '''if x < y {
+  return y;
+} else {
+  return x;
+}
+'''
+    
+class FuncItem(BaseModel):
+    func: str 
+    lib: str
+    data: list
+
 @app.get("/")
 async def read_root():
     return {"Hello": "World"}
+
+@app.get("/version")
+async def get_version():
+    if not os.path.exists("/dev/attestation/report"):
+        version = 'non-enclave'
+    else:
+        version = 'enclave'
+    return {"version":version}
 
 @app.get("/max/{a}/{b}")
 def run_max(a:int, b:int):
@@ -107,20 +124,7 @@ def run_sort(l:Annotated[list[int], Query()]):
     # print("Result:", sorted)
     # return sorted
 
-class ListItem(BaseModel):
-    value: list[int] = [9,0,4,1,5,2,3,6,7,8]
-
-class CodeItem(BaseModel):
-    name: str = 'Max'
-    body: str = '''if x < y {
-  return y;
-} else {
-  return x;
-}
-'''
-   
 @app.post("/sort/")
-# def run_sort(l:Annotated[list[int], Query()]):
 def run_sort(lstJson:ListItem):
     from functions import verified_sort as Sort
     print(lstJson)
@@ -156,53 +160,143 @@ async def get_inputs():
     for fname in inputs:
         fname = replace_suffix(fname,'dfy')
         path_list.append(config.STAGING_DIR + fname)
-    # return path_list
     res = verify_all(path_list)
     print("Result:", res)
 
-    # return {"status":200}
     return {"result":res}
-    # fname = 'BubbleSortDafny.dfy'
-    # path = STAGING_DIR+fname
-    # if not os.path.exists(path):
-    #     return "File does not exist"
-
-    # res = verify_dafny_file(path)
-    # status = 'success' if res else 'fail'
-    # # return res
-    # # return {'response':"Verification han started"}
-    # return 'File ' + fname + ' verified with status:' + str(status)
-    # return res
-    # return staged
-    # # return {"staged": {}}
 
 @app.post("/verify")
 async def verify_dafny_code(codeObj:CodeItem):
-    # print(codeObj)
     name = codeObj.name.replace(" ", "_")
     path = config.STAGING_DIR+name
     path = config.STAGING_DIR + 'tmp.dfy'
     print(codeObj.name)
-    # print(path)
-    # print(codeObj.body)
     with open(path, 'w+') as f:
         f.write(codeObj.body)
         
-    print("Should verify dafny code", flush=True)
     start = time.time()
     errors = verify_dafny_file(path, compile=False)
     total = time.time()-start
     try:
         os.remove(path)
     except e:
-        print("Could not remove files")
+        print("Could not remove files", flush=True)
         print(e)
         print()
 
     result = {'errors': errors, 'time': total}
     return JSONResponse(content=result)
-    # return {'errors', errors, 'time:', total}
     
+@app.post("/compile")
+async def verfy_compile_dafny_code(codeObj:CodeItem):
+    name = codeObj.name.replace(" ", "_")
+    path = config.STAGING_DIR+name
+    if not path.endswith('.dfy'):
+        path+='.dfy'
+    print("Name:", name)
+    print("path:", path)
+    # print(codeObj.name)
+    if not os.path.exists(config.STAGING_DIR):
+        os.mkdir(config.STAGING_DIR)
+    with open(path, 'w+') as f:
+        f.write(codeObj.body)
+        
+    # print("Wrote:")
+    # print(codeObj.body)
+    start = time.time()
+    errors = verify_dafny_file(path, compile=True)
+    total = time.time()-start
+    try:
+        os.remove(path)
+    except e:
+        print("Could not remove files", flush=True)
+        print(e)
+        print()
+
+    result = {'errors': errors, 'time': total}
+    return JSONResponse(content=result)
+
+@app.post("/run")
+async def run_dafny_code(funcObj:FuncItem):
+    start = time.time()
+    from importlib.machinery import SourceFileLoader
+
+    libpath = config.DAFNY_OUT+funcObj.lib + "-py"
+    sys.path.append(libpath)
+
+    lib = SourceFileLoader("lib", libpath+"/module_.py").load_module()
+    default_class = getattr(lib, "default__")
+    my_func = getattr(default_class, funcObj.func)
+
+    from functions import list_to_dafny_array, dafny_array_to_list
+    dafnylib = SourceFileLoader("dafnylib", libpath+"/_dafny.py").load_module()
+    Array = getattr(dafnylib, "Array")
+
+    # print("Data:", funcObj.data)
+
+    args = []
+    for arg in funcObj.data:
+        # print("arg:", arg)
+        if isinstance(arg, list):
+            data_array = list_to_dafny_array(Array, arg)
+            args.append(data_array)
+        else:
+            args.append(arg)
+
+    args = tuple(args)
+    # print("Args:", args)
+    result = my_func(*args) 
+    if not result:
+        result = args
+
+    elapsed = time.time()-start
+    print("Result:", result)
+    return {'result':result, 'time':elapsed}
+    return 200
+    sorted_lst = dafny_array_to_list(sorted_arr)
+
+    print(my_class)
+    print(my_func)
+    print(sorted_arr)
+    print(sorted_lst)
+
+    # mod = loader.load_module()
+    # print(mod)
+    # Sort = sortlib.default__.BubbleSort
+    # from importlib.abc import Loader
+    # func = lib.default__.MergeSort
+    # print(lib)
+    # funcname = 'MergeSort'
+    # print(globals()[funcname])
+    # print(globals())
+
+    # import importlib
+    # importlib.import_module(libpath+"/module_.py", package=None)
+
+    # print("List:", l)
+    # Array = dafnylib.Array
+    # arr = Array([],len(l))
+    # for i in range(len(l)):
+    #     arr[i]=l[i]
+    # print("Init array:",arr)
+    # print("Array length:", arr.length(0))
+    # print("List length:", len(l))
+    # for i in range(arr.length(0)):
+    #     print(arr[i], end=" ")
+    # print()
+    # Sort(arr)
+    # print("Sorted array:",arr)
+    # sorted = list(range(arr.length(0)))
+    # for i in range(arr.length(0)):
+    #     print(arr[i], end=" ")
+    #     sorted[i]=arr[i]
+
+    # print()
+
+    # # print("dafny array len:", length)
+    # print("Result:", sorted)
+    # return sorted
+
 def verify_all(path_list):
     print(path_list)
     results = []
@@ -221,10 +315,19 @@ def verify_all(path_list):
 
 
 def extract_errors_from_output(output):
-    print('error output:', output)
+    # print('error output:', output)
     errors = output.split(',')[-1].strip()
     nerrors = errors.split(" ")[0]
     return int(nerrors)
+
+def get_result_string(output):
+    output = output.strip().split('\n')
+    for line in output:
+        if line.startswith("Dafny program verifier finished"):
+            return line
+    # expected="Dafny program verifier finished with 1 verified, 0 errors"
+    # result_string = get_result_string(output)
+    return None
 
 def test_extract_errors_from_output():
     out = "Dafny program verifier finished with 4 verified, 0 errors"
@@ -263,7 +366,9 @@ def verify_dafny_file(file_path, compile=True):
     print("Output:", output, flush=True)
     expected="Dafny program verifier finished with 1 verified, 0 errors"
     result = output.strip().split('\n')[-1]
-    nerrors = extract_errors_from_output(result)
+    result_string = get_result_string(output)
+    print("Parsed result string:", result_string)
+    nerrors = extract_errors_from_output(result_string)
     return nerrors
     # return 'done'
     return (result==expected)
@@ -470,6 +575,7 @@ if __name__=='__main__':
     # print(config.DAFNY_BIN)
     # print(config.DAFNY_TARGET) 
 
+    # print(res.text)
     # uvicorn.run("main:app", loop='asyncio', host='0.0.0.0', port=12341, reload=True)
     ENV = os.environ.get("ENV")
 
@@ -485,6 +591,9 @@ if __name__=='__main__':
         # ssl_context.load_cert_chain('/tmp/cert.pem', keyfile='/tmp/key.pem')
     
     reload = True if ENV=='local' else False
+    # reload = False
+    print("Automatic reload is:", reload)
+
     uvicorn.run("main:app",
                 loop='asyncio',
                 host='0.0.0.0',
