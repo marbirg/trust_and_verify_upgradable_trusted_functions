@@ -16,3 +16,6 @@ local/verified
 client/venv
 venv
 trash
+python.sig
+python.manifest.sgx
+python.manifest
