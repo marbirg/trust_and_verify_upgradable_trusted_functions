@@ -112,10 +112,14 @@ class DafnyObjArray:
 
 
 def verified_sort(l):
-    func_name = 'BubbleSortDafny'
+    # func_name = 'BubbleSortDafny'
+    func_name = 'Sort'
     lib = get_module(func_name)
-    Sort = lib.default__.BubbleSort
-    arr = DafnyArray.list_to_dafny_array(l)
+    # Sort = lib.default__.BubbleSort
+    Sort = lib.default__.Sort
+    # arr = DafnyArray.list_to_dafny_array(l)
+    dafnyArray = DafnyObjArray(func_name)
+    arr = dafnyArray.list_to_dafny_array(l)
     Sort(arr)
     sorted = DafnyArray.dafny_array_to_list(arr)
     return sorted

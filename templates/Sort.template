@@ -1,18 +1,10 @@
-predicate sorted(a: array?<int>, l: int, u: int)
-  reads a
-  requires a != null
-  {
-    forall i, j :: 0 <= l <= i <= j <= u < a.Length ==> a[i] <= a[j]
-  }
+predicate Sorted(q: seq<int>) {
+	forall i,j :: 0 <= i <= j < |q| ==> q[i] <= q[j]
+}
 
-predicate partitioned(a: array?<int>, i: int)
-  reads a
-  requires a != null
-  {
-    forall k, k' :: 0 <= k <= i < k' < a.Length ==> a[k] <= a[k']
-  }
-
-method BubbleSort(a: array?<int>)
+method Sort(a: array?<int>)
   modifies a
-  requires a != null
-  ensures sorted(a, 0, a.Length-1)
+  requires a!=null
+  ensures forall i,j::0<= i < j < a.Length ==> a[i] <= a[j]
+  ensures Sorted(a[..])
+  ensures multiset(a[..])==multiset(old(a[..]))

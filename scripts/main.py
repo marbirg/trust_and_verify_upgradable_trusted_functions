@@ -18,11 +18,13 @@ from fastapi.responses import JSONResponse
 from conf_lib import get_config
 
 from taxi_congestion import router as taxi_router
+from fitness_computation import router as fitness_router
 
 config = get_config()
 app=FastAPI()
 
 app.include_router(taxi_router, prefix='/taxi')
+app.include_router(fitness_router, prefix='/fitness')
 
 class ListItem(BaseModel):
     value: list[int] = [9,0,4,1,5,2,3,6,7,8]
