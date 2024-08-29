@@ -1,4 +1,5 @@
 STAGING_DIR = '/data/tmp/'
+DYNAMIC_CODE = "/data/dynlib/"
 DAFNY_OUT = "/data/verified/"
 DAFNY_BIN = "/usr/lib/dafny/dafny"
 DAFNY_TARGET = '/compileTarget:py'

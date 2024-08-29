@@ -19,6 +19,7 @@ from conf_lib import get_config
 from taxi_congestion import router as taxi_router
 from fitness_computation import router as fitness_router
 from voting_computation import router as voting_router
+from dynamic_deploy import router as dyndeploy_router
 
 config = get_config()
 app=FastAPI()
@@ -26,18 +27,20 @@ app=FastAPI()
 app.include_router(taxi_router, prefix='/taxi')
 app.include_router(fitness_router, prefix='/fitness')
 app.include_router(voting_router, prefix='/voting')
+app.include_router(dyndeploy_router, prefix='/dynamic')
 
 class ListItem(BaseModel):
     value: list[int] = [9,0,4,1,5,2,3,6,7,8]
 
-class CodeItem(BaseModel):
-    name: str = 'Max'
-    body: str = '''if x < y {
-  return y;
-} else {
-  return x;
-}
-'''
+from models import CodeItem
+# class CodeItem(BaseModel):
+#     name: str = 'Max'
+#     body: str = '''if x < y {
+#   return y;
+# } else {
+#   return x;
+# }
+# '''
     
 class FuncItem(BaseModel):
     func: str 

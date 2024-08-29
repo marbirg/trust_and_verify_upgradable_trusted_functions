@@ -2,6 +2,7 @@ import os
 base = os.getcwd()
 STAGING_DIR = base+'/local/tmp/'
 DAFNY_OUT = base+"/local/verified/"
+DYNAMIC_CODE = base+"/local/dynlib/"
 DAFNY_BIN = base+"/dafny/dafny"
 DAFNY_TARGET = '/compileTarget:py'
 INPUT_DIR=base+'/local/input/'
