@@ -1,5 +1,6 @@
 dafny
 scripts/*.dll*
+*.log
 dafny.manifest
 dafny.manifest.sgx
 dafny.sig
@@ -12,10 +13,11 @@ data/verified/maxlib-py/__pycache__
 data/verified
 nonenc_lib/maxlib
 input
-local/verified
+local
 client/venv
 venv
 trash
 python.sig
 python.manifest.sgx
 python.manifest
+reports
