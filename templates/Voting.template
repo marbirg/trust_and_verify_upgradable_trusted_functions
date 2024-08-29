@@ -1,0 +1,3 @@
+method Count_votes(a:array<int>) returns (count:int, value:int)
+			 ensures count==-1 || count>a.Length/2;
+			 ensures count==-1 || count==multiset(a[..])[value];

@@ -132,3 +132,13 @@ def verified_count(zone_id:int, zone_count:list[int]):
     arr = dafnyArray.list_to_dafny_array(zone_count)
     res = Count(zone_id, arr)
     return res
+
+def verified_voting(votes:list[int]):
+    func_name = 'Voting'
+    lib = get_module(func_name)
+    func = lib.default__.Count__votes
+    dafnyArray = DafnyObjArray(func_name)
+    arr = dafnyArray.list_to_dafny_array(votes)
+    res = func(arr)
+    return res
+
