@@ -1,0 +1,21 @@
+{
+	var b :=multiset(a[..]);
+	var keys := ( set keys | keys in a[..] );
+	count:=-1;
+	value:=-1;
+
+	var c := keys;
+	while ( c  != {} )
+              decreases c;
+	      invariant count==-1 || count>a.Length/2
+	      invariant count==-1 || count==multiset(a[..])[value]
+    	{
+    	    var y :| y in c;
+	    if b[y]>=a.Length/2
+	    {
+		count:=b[y];
+		value:=y;
+	    }
+        c := c - { y };
+    }
+}
