@@ -146,7 +146,7 @@ async def deploy_code(codeObj:CodeItem):
     try:
         create_dafny_file(codeObj.name, codeObj.body)
         path = config.STAGING_DIR + codeObj.name + '.dfy'
-        print("Path to verify:", path)
+        print("Path to verify:", path, flush=True)
         nerrors = verify_dafny_file(path)
         if nerrors>=0:
             response = codeObj.name + " verified with " + str(nerrors) + " errors"
@@ -154,7 +154,6 @@ async def deploy_code(codeObj:CodeItem):
             response = "Verification did not succeed"
     except Exception as e:
         response = str(e)
-    
     return response
 
 @app.get("/inputs")
@@ -446,7 +445,8 @@ def replace_suffix(string, new_suffix):
     return '.'.join(string)
 
 def merge(template, body):
-    return template+'\n{\n' + body + '\n}'
+    return template+'\n' + body
+    # return template+'\n{\n' + body + '\n}'
 
 def create_dafny_files(inputs):
     templates = read_templates()

@@ -120,7 +120,7 @@ def verified_sort(l):
     # arr = DafnyArray.list_to_dafny_array(l)
     dafnyArray = DafnyObjArray(func_name)
     arr = dafnyArray.list_to_dafny_array(l)
-    Sort(arr)
+    arr = Sort(arr)
     sorted = DafnyArray.dafny_array_to_list(arr)
     return sorted
 

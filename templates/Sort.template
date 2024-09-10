@@ -1,10 +1,15 @@
 predicate Sorted(q: seq<int>) {
 	forall i,j :: 0 <= i <= j < |q| ==> q[i] <= q[j]
 }
+method Sort(a: array?<int>) returns (b: array<int>)
+ requires a!=null
+ decreases a.Length
+ ensures Sorted(b[..])
+ ensures multiset(b[..])==multiset(a[..])
+ ensures b.Length == a.Length
 
-method Sort(a: array?<int>)
-  modifies a
-  requires a!=null
-  ensures forall i,j::0<= i < j < a.Length ==> a[i] <= a[j]
-  ensures Sorted(a[..])
-  ensures multiset(a[..])==multiset(old(a[..]))
+  // modifies a
+  // requires a!=null
+  // ensures forall i,j::0<= i < j < a.Length ==> a[i] <= a[j]
+  // ensures Sorted(a[..])
+  // ensures multiset(a[..])==multiset(old(a[..]))
