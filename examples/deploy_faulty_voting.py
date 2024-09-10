@@ -12,6 +12,8 @@ import urllib3
 urllib3.disable_warnings(category=urllib3.exceptions.InsecureRequestWarning)
 
 HOST='https://localhost:12341'
+success_response = "\"Voting verified with 0 errors\""
+error_response = "\"Verification did not succeed\""
 
 def deploy_voting(body_path):
     url = HOST+'/deploy'
@@ -28,9 +30,8 @@ if __name__=='__main__':
     faulty_voting = './dafny.examples/faulty.Voting.body'
 
     response = deploy_voting(correct_voting)
-    expected_response = "\"Voting verified with 0 errors\""
-    assert response == expected_response
+    assert response == success_response
 
     response = deploy_voting(faulty_voting)
-    expected_response = "\"Verification did not succeed\""
-    assert response == expected_response
+    assert response == error_response 
+    print("Succes")
