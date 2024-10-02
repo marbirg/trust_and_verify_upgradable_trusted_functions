@@ -8,21 +8,6 @@ OR
 
 Run ``make dafny`` to fetch version 4.6.0 used during  development.
 
-Run withtout sgx: gramine-direct ./dafny scripts/Abs.dfy
-
-
-Libs loaded by mono and Dafny (found using debug var)
-/usr/lib/boogie
-/etc/mono/
-
-Mono: DllImport searching in: '/usr/lib/../lib/libmono-native.so' ('/usr/lib/../lib/libmono-native.so').
-
-/etc/localtime
-/usr/bin/z3
-
-Already loaded:
-/usr/lib/mono
-/usr/lib/dafny
 
 # Dafny targets
 https://dafny.org/dafny/DafnyRef/DafnyRef.html
