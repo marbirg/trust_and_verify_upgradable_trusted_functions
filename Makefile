@@ -34,8 +34,6 @@ setup: dafny
 	. venv/bin/activate && pip install -r requirements.txt
 	openssl req -x509 -newkey rsa:4096 -nodes -out ./local/ssl/cert.pem -keyout ./local/ssl/key.pem -days 365 -subj "/C=XX/ST=StateName/L=CityName/O=CompanyName/OU=CompanySectionName/CN=CommonNameOrHostname"
 
-print-path:
-	echo $(realpath $(shell sh -c "command -v python3"))
 build-debug: clean
 	${MAKE} SGX=1 DEBUG=1
 
@@ -88,15 +86,6 @@ clear-enclave-files:
 
 clear-input:
 	rm -rf input/*
-
-input-max: clear-input
-	cp input_files/Max.body input/
-input-abs: clear-input
-	cp input_files/Abs.body input/
-input-sort: clear-input
-	cp input_files/BubbeSortDafny.body input/
-input-all: clear-input
-	cp input_files/*.body input/
 
 run-local:
 	. ./venv/bin/activate && ENV=local python scripts/main.py
