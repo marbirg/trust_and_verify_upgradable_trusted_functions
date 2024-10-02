@@ -473,10 +473,12 @@ def create_dafny_file(name:str, body:str):
         dafny_file_name = name+'.dfy'
         path = config.STAGING_DIR+dafny_file_name
         if not os.path.exists(config.STAGING_DIR):
-            os.mkdir(config.STAGING_DIR)
+            try:
+                os.makedirs(config.STAGING_DIR)
+            except Exception as e:
+                print(e)
         with open(path,'w') as f:
             f.write(dafny_file)
-            print("Written file",path )
     else:
         print("No corresponding template found")
         raise Exception("No specification with that name found")
