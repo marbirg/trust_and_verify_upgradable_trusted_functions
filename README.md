@@ -3,7 +3,7 @@ To be able to run the examples it is necessary to have access to an Intel SGX ca
 
 |Property  |Value|
 |----------|-----|
-|OS/Kernel | Linux SGX 5.4.0-1104-azure \#110$\sim$18.04.1-Ubuntu SMP x86\_64 GNU/Linux |
+|OS/Kernel | Linux SGX 5.4.0-1104-azure \#110$ ~18.04.1-Ubuntu SMP x86\_64 GNU/Linux |
 |CPU | Intel(R) Xeon(R) E-2288G CPU @ 3.70GHz |
 |Size | Standard DC2ds v3 |
 |vCPUs | 2 |
