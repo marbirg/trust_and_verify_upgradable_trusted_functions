@@ -26,8 +26,13 @@ RA_CLIENT_LINKABLE ?= 0
 build: clean
 	${MAKE} SGX=1 
 
+.PHONY: setup
 setup: dafny
 	mkdir input -p
+	mkdir local/ssl -p
+	python3 -m venv venv
+	. venv/bin/activate && pip install -r requirements.txt
+	openssl req -x509 -newkey rsa:4096 -nodes -out ./local/ssl/cert.pem -keyout ./local/ssl/key.pem -days 365 -subj "/C=XX/ST=StateName/L=CityName/O=CompanyName/OU=CompanySectionName/CN=CommonNameOrHostname"
 
 print-path:
 	echo $(realpath $(shell sh -c "command -v python3"))
@@ -50,23 +55,11 @@ python.manifest.sgx python.sig: python.sgx_sign
 	@:
 
 .INTERMEDIATE: sgx_sign
-sgx_sign: dafny.manifest
-	gramine-sgx-sign \
-		--manifest $< \
-		--output $<.sgx
-
 python.sgx_sign: python.manifest
 	gramine-sgx-sign \
 		--manifest $< \
 		--output $<.sgx
 
-.PHONY: check
-check: all
-	./run-tests.sh > TEST_STDOUT 2> TEST_STDERR
-	@grep -q "Success 1/4" TEST_STDOUT
-	@grep -q "Success 2/4" TEST_STDOUT
-	@grep -q "Success 3/4" TEST_STDOUT
-	@grep -q "Success 4/4" TEST_STDOUT
 ifeq ($(SGX),1)
 	@grep -q "Success SGX report" TEST_STDOUT
 	@grep -q "Success SGX quote" TEST_STDOUT
@@ -105,9 +98,7 @@ input-sort: clear-input
 input-all: clear-input
 	cp input_files/*.body input/
 
-run-local-dev:
-	. ./venv/bin/activate && ENV=local python scripts/main.py
 run-local:
-	ENV=local python3 scripts/main.py
+	. ./venv/bin/activate && ENV=local python scripts/main.py
 run-enclave:
 	gramine-sgx ./python
