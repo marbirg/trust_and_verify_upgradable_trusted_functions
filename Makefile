@@ -26,6 +26,9 @@ RA_CLIENT_LINKABLE ?= 0
 build: clean
 	${MAKE} SGX=1 
 
+setup: dafny
+	mkdir input -p
+
 print-path:
 	echo $(realpath $(shell sh -c "command -v python3"))
 build-debug: clean
@@ -107,4 +110,4 @@ run-local-dev:
 run-local:
 	ENV=local python3 scripts/main.py
 run-enclave:
-	gramine-sgx ./python main.py
+	gramine-sgx ./python
