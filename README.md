@@ -1,16 +1,6 @@
 
-# Dafny targets
-https://dafny.org/dafny/DafnyRef/DafnyRef.html
-
-Default is c#
-javascript: '--target:js'
-go: '--target:go'
-python: '--target:py'
-java: '--target:java'
-cpp: '--target:cpp'
-
 # Setup
-Dafny:
+## 1. Dafny:
 Download latest binary version from: https://docs.microsoft.com/dotnet/core/install/linux
 https://github.com/dafny-lang/dafny/releases
 
@@ -29,6 +19,16 @@ Mono: DllImport searching in: '/usr/lib/../lib/libmono-native.so' ('/usr/lib/../
 Already loaded:
 /usr/lib/mono
 /usr/lib/dafny
+
+# Dafny targets
+https://dafny.org/dafny/DafnyRef/DafnyRef.html
+
+Default is c#
+javascript: '--target:js'
+go: '--target:go'
+python: '--target:py'
+java: '--target:java'
+cpp: '--target:cpp'
 
 # Info
 is-sgx-available
