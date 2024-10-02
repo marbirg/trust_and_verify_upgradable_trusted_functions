@@ -4,6 +4,10 @@
 Download latest binary version from: https://docs.microsoft.com/dotnet/core/install/linux
 https://github.com/dafny-lang/dafny/releases
 
+OR
+
+Run ``make dafny`` to fetch version 4.6.0 used during  development.
+
 Run withtout sgx: gramine-direct ./dafny scripts/Abs.dfy
 
 
