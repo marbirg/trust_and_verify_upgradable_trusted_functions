@@ -1,3 +1,9 @@
+This project serves as a proof of concept for how to run and upgrade formally proven code in a TEE. The work has been the base for the paper 'Trust and Verify: Formally Verified and Upgradable Trusted Functions' and has been accepted to ICSME 2025 in Auckland.
+
+The project makes use of Gramine to run an unmodified version of Dafny inside a secure enclave. By the means of Dafny, we can verify that certain properties hold for a certain code snippet, and only allow code that adheres to these requirements to be deployed.
+
+With this method, one can define the requirements for certain functions without showing the implementation. This makes it possible to both change the implementation without changing the attestation hash of the enclave, as well as giving a guarantee for WHAT the code will do without showing HOW it will be done.
+
 # Requirements
 To be able to run the examples it is necessary to have access to an Intel SGX capable machine, as well as having Gramine installed. The following hardware specifications has been used in Azure cloud during development:
 
